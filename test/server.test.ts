@@ -74,7 +74,6 @@ let server: Server;
 const createTestServer = () => Factory.create([UserController, ErrorController, TestController]);
 
 describe('HTTP Server (Factory + Controllers)', async () => {
-  // Start server before first test
   if (!server) {
     server = createTestServer();
     await new Promise<void>((resolve) => {

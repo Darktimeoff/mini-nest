@@ -16,7 +16,6 @@ export async function parseJsonBody(req: IncomingMessage): Promise<any> {
       try {
         const rawString = Buffer.concat(chunks).toString('utf-8');
         
-        // Если тело пустое, возвращаем пустой объект
         if (!rawString) {
           return resolve({});
         }

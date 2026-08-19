@@ -69,7 +69,7 @@ class UserController { ... }
 `@Get(path)` / `@Post(path)` — декоратори методів, що реєструють маршрут. Повний шлях будується як `/{controllerPrefix}{methodPath}`, наприклад:
 
 ```ts
-@Get(':id')  // GET /users/:id
+@Get(':id')
 getById(@Param('id') id: string) { ... }
 ```
 

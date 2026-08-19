@@ -141,7 +141,7 @@ describe('Utilities', () => {
       server.on('request', async (req, res) => {
         try {
           const promise = parseJsonBody(req);
-          // Trigger error on stream
+ 
           req.emit('error', new Error('Stream error'));
           await promise;
           res.end('should not reach');
@@ -159,7 +159,7 @@ describe('Utilities', () => {
               body: JSON.stringify({ test: 'data' })
             });
           } catch {
-            // Expected to fail
+          
           }
           server.close(() => resolve());
         });
