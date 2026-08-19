@@ -1,5 +1,6 @@
 import type { HttpMethodEnum } from "../enum/http-method.enum.js";
 import { MetadataProperty } from "../enum/metadata-property.enum.js";
+import type { RouteMethodHandlerInterface } from "../interface/route-method-handler.interface.js";
 import { isHttpMethod } from "../type-guard/is-http-method.type-guard.js";
 import type { RouteType } from "../type/route.type.js";
 
@@ -13,11 +14,17 @@ export class Router {
     this.routes = Object.entries(this.routerHandlerMap)
   }
 
-  match(url: string, method: string): Function | false  {
-    for (const [path, route] of this.routes) {
+  match(url: string, method: string): RouteMethodHandlerInterface | false  {
+    const [pathname, query] = url.split('?') as [string, string | undefined]
+    
+    for (const [path, httpMap] of this.routes) {
       const pattern = new URLPattern({ pathname: path });
-      if (pattern.test({pathname: url})) {
-        return method in route && isHttpMethod(method) && route[method] ? route[method] : false
+      if (pattern.test({pathname: pathname})) {
+        return method in httpMap && isHttpMethod(method) && httpMap[method] ? {
+          ...httpMap[method],
+          params: pattern.exec({ pathname: pathname })?.pathname.groups ?? {},
+          queries: Object.fromEntries(new URLSearchParams(query).entries())
+        } : false
       }
     }
 
@@ -36,7 +43,11 @@ export class Router {
       
       this.routerHandlerMap[normalizedPath] = {
         ...(this.routerHandlerMap[normalizedPath] ?? {}),
-        [httpMethod]: controller[methodName]
+        [httpMethod]: {
+          instance: controller,
+          method: controller[methodName],
+          paramTypes: Reflect.getMetadata("design:paramtypes", Object.getPrototypeOf(controller), methodName) || [],
+        }
       }
     }
   }

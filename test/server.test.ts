@@ -1,33 +1,26 @@
 import 'reflect-metadata';
-import { Factory, Controller, Get, Post } from '../src/index.js'
+import { Factory, Controller, Get, Post, Param, Query, Body } from '../src/index.js'
 
 @Controller('user')
 export class UserController {
-  constructor() {
-    
-  }
+  constructor() {}
 
   @Get(':id')
-  async getById() {
-    console.log('Get by Id')
+  async getById(@Param('id') id: string) {
+    console.log('Get by Id', id)
     return {}
   }
 
   @Post()
-  async create() {
-    console.log('Create')
+  async create(@Body() body: object) {
+    console.log('Create', body)
     return {}
   }
   
   @Get('')
-  async findAll() {
-    console.log('Find all')
+  async findAll(@Query('limit') limit: string) {
+    console.log('Find all', limit)
     return []
-  }
-
-  private methodName() {
-    console.log('Method name private')
-    return void 0
   }
 }
 
