@@ -1,7 +1,7 @@
-import { InjectableScope } from "./enum/injectable-scope.enum.js";
-import { MetadataProperty } from "./enum/metadata-property.enum.js";
-import type { ConstructorType } from "./type/constructor.type.js";
-import type { InjectTokenType } from "./type/inject-token.type.js";
+import { InjectableScope } from "../enum/injectable-scope.enum.js";
+import { MetadataProperty } from "../enum/metadata-property.enum.js";
+import type { ConstructorType } from "../type/constructor.type.js";
+import type { InjectTokenType } from "../type/inject-token.type.js";
 
 export class Container {
   private instanceMap: Map<ConstructorType, object> = new Map()

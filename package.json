@@ -6,9 +6,12 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
+    "start": "bun test/server.test.ts",
     "test": "tsc -p test/tsconfig.json && node --experimental-test-coverage --test-coverage-lines=100 --test-coverage-branches=100 --test-coverage-functions=100 --test-coverage-include='dist-test/src/**/*.js' --test 'dist-test/test/**/*.test.js'"
   },
   "dependencies": {
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.15.1",
     "reflect-metadata": "^0.2.2"
   },
   "devDependencies": {
