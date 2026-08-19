@@ -17,7 +17,7 @@ export class HandlerBuilder {
       })
     )
 
-    return () => route.method(...args)
+    return () => route.method.apply(route.instance, args)
   }
 
   private async validateArgument(initialMetadataType: ConstructorType, value: any, route: RouteMethodHandlerInterface) {

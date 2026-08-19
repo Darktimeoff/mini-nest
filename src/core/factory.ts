@@ -26,6 +26,8 @@ export class Factory {
       try {
         const handler = await handlerBuilder.build(routeMethodHandler, req)
         const result = await handler()
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify(result));
       } catch (err) {
         if (err instanceof HttpException) {
           res.writeHead(err.statusCode, { 'Content-Type': 'application/json; charset=utf-8' });
@@ -33,10 +35,11 @@ export class Factory {
             message: err.message,
             details: err.details
           }));
+        } else {
+          res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+          res.end(JSON.stringify({ message: 'Internal Server Error' }));
         }
       }
-      
-      res.end()
     })
   }
 }
