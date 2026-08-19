@@ -1,10 +1,30 @@
 import type { HttpMethodEnum } from "../enum/http-method.enum.js";
 import { MetadataProperty } from "../enum/metadata-property.enum.js";
+import { isHttpMethod } from "../type-guard/is-http-method.type-guard.js";
+import type { RouteType } from "../type/route.type.js";
 
 export class Router {
-  private readonly routerHandlerMap = new Map()
+  private readonly routerHandlerMap: Record<string,  RouteType> = {}
+  private routes: [string, RouteType][] = []
 
-  add(controller: object) {
+  build(controllers: object[]) {
+    controllers.forEach(this.add.bind(this))
+    
+    this.routes = Object.entries(this.routerHandlerMap)
+  }
+
+  match(url: string, method: string): Function | false  {
+    for (const [path, route] of this.routes) {
+      const pattern = new URLPattern({ pathname: path });
+      if (pattern.test({pathname: url})) {
+        return method in route && isHttpMethod(method) && route[method] ? route[method] : false
+      }
+    }
+
+    return false
+  }
+
+  private add(controller: object) {
     const controllerPath: string = Reflect.getMetadata(MetadataProperty.CONTROLLER_PATH, controller.constructor)
     const methods = this.getInstanceMethods(controller)
     
@@ -14,13 +34,11 @@ export class Router {
       const normalizedPath = `/${controllerPath.replaceAll('/', '')}${path.length > 0 ? '/' : ''}${path.replaceAll('/', '')}`
 
       
-      this.routerHandlerMap.set(normalizedPath, {
-        ...(this.routerHandlerMap.get(normalizedPath) ?? {}),
+      this.routerHandlerMap[normalizedPath] = {
+        ...(this.routerHandlerMap[normalizedPath] ?? {}),
         [httpMethod]: controller[methodName]
-      })
+      }
     }
-
-    console.log(this.routerHandlerMap)
   }
 
   private getInstanceMethods<T extends Object>(instance: any): (keyof T)[] {

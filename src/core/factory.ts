@@ -8,13 +8,16 @@ export class Factory {
     const container = new Container()
     const router = new Router()
     
-    controllers.forEach(c => {
-      const controller = container.resolve(c)
-      router.add(controller)
-    })
+    const instances = controllers.map(c => container.resolve(c))
+    router.build(instances)
     
     return createServer((req, res) => {
-      console.log(req.url, req.method)
+      const handler = req.url && req.method ? router.match(req.url, req.method) : false
+      if (!handler) {
+        res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
+        res.end('404 Not Found');
+      }
+      
       res.end()
     })
   }

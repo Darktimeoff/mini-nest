@@ -9,21 +9,24 @@ export class UserController {
 
   @Get(':id')
   async getById() {
+    console.log('Get by Id')
     return {}
   }
 
   @Post()
   async create() {
+    console.log('Create')
     return {}
   }
   
   @Get('')
   async findAll() {
-    console.log('Call method')
+    console.log('Find all')
     return []
   }
 
   private methodName() {
+    console.log('Method name private')
     return void 0
   }
 }
