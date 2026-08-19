@@ -4,5 +4,6 @@ export enum MetadataProperty {
   CONTROLLER_PATH = 'controllerPath',
   METHOD_PATH = 'methodPath',
   METHOD_HTTP_OPERATION = 'methodOperation',
-  METHOD_PARAM = 'methodParam'
+  METHOD_PARAM = 'methodParam',
+  PIPES = 'pipes'
 }

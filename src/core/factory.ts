@@ -3,6 +3,7 @@ import type { ConstructorType } from "../type/constructor.type.js";
 import { Container } from "./container.js";
 import { Router } from "./router.js";
 import { HandlerBuilder } from "./handler-builder.js";
+import { HttpException } from "../http-exception/http-exception.js";
 
 export class Factory {
   static create(controllers: ConstructorType[]): Server<typeof IncomingMessage, typeof ServerResponse> {
@@ -22,8 +23,18 @@ export class Factory {
         return;
       }
 
-      const handler = await handlerBuilder.build(routeMethodHandler, req)
-      const result = await handler()
+      try {
+        const handler = await handlerBuilder.build(routeMethodHandler, req)
+        const result = await handler()
+      } catch (err) {
+        if (err instanceof HttpException) {
+          res.writeHead(err.statusCode, { 'Content-Type': 'application/json; charset=utf-8' });
+          res.end(JSON.stringify({
+            message: err.message,
+            details: err.details
+          }));
+        }
+      }
       
       res.end()
     })

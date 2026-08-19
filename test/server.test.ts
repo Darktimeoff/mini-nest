@@ -1,5 +1,14 @@
 import 'reflect-metadata';
-import { Factory, Controller, Get, Post, Param, Query, Body } from '../src/index.js'
+import { Factory, Controller, Get, Post, Param, Query, Body, UsePipes, ValidationPipe } from '../src/index.js'
+import { IsEmail, IsNotEmpty } from 'class-validator';
+
+export class UserCreateDto {
+  @IsEmail()
+  email: string;
+
+  @IsNotEmpty()
+  password: string;
+}
 
 @Controller('user')
 export class UserController {
@@ -12,7 +21,8 @@ export class UserController {
   }
 
   @Post()
-  async create(@Body() body: object) {
+  @UsePipes([new ValidationPipe()])
+  async create(@Body() body: UserCreateDto) {
     console.log('Create', body)
     return {}
   }
