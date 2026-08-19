@@ -3,5 +3,6 @@ export enum MetadataProperty {
   TOKEN = 'token',
   CONTROLLER_PATH = 'controllerPath',
   METHOD_PATH = 'methodPath',
-  METHOD_HTTP_OPERATION = 'methodOperation'
+  METHOD_HTTP_OPERATION = 'methodOperation',
+  METHOD_PARAM = 'methodParam'
 }
