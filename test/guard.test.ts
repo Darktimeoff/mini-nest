@@ -1,6 +1,29 @@
 import z, { ZodType } from "zod";
-import { UseGuards, Controller, Factory, type GuardCanActivateInterface, type ExecutionContextInterface, Get, Param, Injectable, type InterceptorInterface, UseInterceptors, BadRequestException, Post, UsePipes, Body } from "../src/index.js";
+import { UseGuards, Controller, Factory, type GuardCanActivateInterface, type ExecutionContextInterface, Get, Param, Injectable, type InterceptorInterface, UseInterceptors, BadRequestException, Post, UsePipes, Body, Catch,UseFilters,HttpException, type ExceptionFilterInterface, NotFoundException } from "../src/index.js";
 import type { PipeTransformInterface } from "../src/interface/pipe-transform.interface.js";
+
+@Catch(HttpException)
+export class HttpExceptionFilter implements ExceptionFilterInterface {
+  catch(exception: HttpException, execution: ExecutionContextInterface) {
+    const ctx = execution.switchToHttp();
+    const response = ctx.getResponse();
+    const request = ctx.getRequest();
+    const status = exception.statusCode
+
+    response.writeHead(status, { 'Content-Type': 'application/json' });
+
+    console.log('catch')
+
+    response.end(
+      JSON.stringify({
+        statusCode: status,
+        timestamp: new Date().toISOString(),
+        path: request.url,
+      })
+    )
+  }
+}
+
 
 const CreateUserSchema = z.object({
   name: z.string().min(2),
@@ -82,14 +105,18 @@ export class UserController {
   @UseGuards(new AuthMethodGuard)
   @Get(':id')
   async findById(@Param('id') id: string) {
+    console.log('test', id)
+    throw new NotFoundException()
     return {
       id
     }
   }
 
+  @UseFilters(new HttpExceptionFilter())
   @UsePipes([new ZodValidationPipe(CreateUserSchema)])
   @Post()
   async create(@Body() user: CreateUserDto) {
+    throw new BadRequestException()
     return user
   }
 }

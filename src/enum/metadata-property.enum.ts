@@ -7,5 +7,7 @@ export enum MetadataProperty {
   METHOD_PARAM = 'methodParam',
   PIPES = 'pipes',
   GUARDS = 'guards',
-  INTERCEPTORS = 'interceptors'
+  INTERCEPTORS = 'interceptors',
+  FILTERS = 'filters',
+  EXCEPTIONS = 'exceptions'
 }
