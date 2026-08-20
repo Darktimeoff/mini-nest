@@ -28,16 +28,23 @@ export class Factory {
         res.end('404 Not Found');
         return;
       }
+
+      const context: ExecutionContextInterface = {
+        switchToHttp: () => ({
+          getRequest: () => req,
+          getResponse: () => res
+        })
+      }
       
       try {
-        Factory.applyGuards(routeMethodHandler, req)
+        Factory.applyGuards(routeMethodHandler, context)
         
         const execturHandler = async () => {
           const handler = await handlerBuilder.build(routeMethodHandler, req)
           return await handler()
         }
 
-        const result = await Factory.applyInterceptors(routeMethodHandler, req, execturHandler)
+        const result = await Factory.applyInterceptors(routeMethodHandler, context, execturHandler)
         
         res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
         res.end(JSON.stringify(result));
@@ -56,17 +63,13 @@ export class Factory {
     })
   }
 
-  static async applyGuards(routeMethodHandler: RouteMethodHandlerInterface, req: IncomingMessage) {
+  static async applyGuards(routeMethodHandler: RouteMethodHandlerInterface, context: ExecutionContextInterface) {
     const classGuards: GuardCanActivateInterface[] = Reflect.getMetadata(MetadataProperty.GUARDS, routeMethodHandler.instance.constructor) ?? []
     const methodGuards: GuardCanActivateInterface[] = Reflect.getMetadata(MetadataProperty.GUARDS, Object.getPrototypeOf(routeMethodHandler.instance), routeMethodHandler.method.name) ?? []
     const guards = [...classGuards, ...methodGuards];
 
     for (const guard of guards) {
-      const result = await guard.canActivate({
-        switchToHttp: () => ({
-          getRequest: () => req
-        })
-      })
+      const result = await guard.canActivate(context)
 
       if (!result) {
         throw new ForbiddenException()
@@ -74,15 +77,10 @@ export class Factory {
     }
   }
 
-  static async applyInterceptors(routeMethodHandler: RouteMethodHandlerInterface, req: IncomingMessage, handler: Function) {
+  static async applyInterceptors(routeMethodHandler: RouteMethodHandlerInterface, context: ExecutionContextInterface, handler: Function) {
     const classs: InterceptorInterface[] = Reflect.getMetadata(MetadataProperty.INTERCEPTORS, routeMethodHandler.instance.constructor) ?? []
     const methods: InterceptorInterface[] = Reflect.getMetadata(MetadataProperty.INTERCEPTORS, Object.getPrototypeOf(routeMethodHandler.instance), routeMethodHandler.method.name) ?? []
     const interceptos = [...classs, ...methods];
-    const context: ExecutionContextInterface = {
-      switchToHttp: () => ({
-        getRequest: () => req
-      })
-    }
 
     const queues: ((response: any) => any | Promise<any>)[] = []
     

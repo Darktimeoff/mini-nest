@@ -17,3 +17,4 @@ export type { GuardCanActivateInterface } from './interface/guard-can-activate.i
 export type { ExecutionContextInterface } from './interface/execution-context.interface.js'
 export { UseInterceptors } from './decorators/use-interceptors.js'
 export type { InterceptorInterface } from './interface/interceptor.interface.js'
+export { BadRequestException } from './http-exception/bad-request-exception.js'

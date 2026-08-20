@@ -1,4 +1,29 @@
-import { UseGuards, Controller, Factory, type GuardCanActivateInterface, type ExecutionContextInterface, Get, Param, Injectable, type InterceptorInterface, UseInterceptors } from "../src/index.js";
+import z, { ZodType } from "zod";
+import { UseGuards, Controller, Factory, type GuardCanActivateInterface, type ExecutionContextInterface, Get, Param, Injectable, type InterceptorInterface, UseInterceptors, BadRequestException, Post, UsePipes, Body } from "../src/index.js";
+import type { PipeTransformInterface } from "../src/interface/pipe-transform.interface.js";
+
+const CreateUserSchema = z.object({
+  name: z.string().min(2),
+  email: z.email(),                 // Zod 4: z.email(), а НЕ z.string().email()
+  age: z.int().min(16),
+});
+
+type CreateUserDto = z.infer<typeof CreateUserSchema>;
+
+class ZodValidationPipe implements PipeTransformInterface {
+  constructor(private readonly schema: ZodType) {}
+
+  async transform(value: unknown) {
+    const result = this.schema.safeParse(value);
+    if (!result.success) {
+      const errorDetails = result.error.issues.map((i: any) => `${i.path.join('.')}: ${i.message}`)
+      
+      throw new BadRequestException('Bad Request', errorDetails);
+    }
+    
+    return result.data;   // ← безпечно розпарсене значення; зайві ключі вже зрізані
+  }
+}
 
 @Injectable()
 class LoggingInterceptor implements InterceptorInterface {
@@ -60,6 +85,12 @@ export class UserController {
     return {
       id
     }
+  }
+
+  @UsePipes([new ZodValidationPipe(CreateUserSchema)])
+  @Post()
+  async create(@Body() user: CreateUserDto) {
+    return user
   }
 }
 
