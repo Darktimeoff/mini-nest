@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import { Router } from '../src/core/router.js';
 import { MetadataPropertyEnum } from '../src/enum/metadata-property.enum.js';
 import { HttpMethodEnum } from '../src/enum/http-method.enum.js';
+import type { ControllerInstanceType } from '../src/type/controller-instance.type.js';
 
 describe('Router internal defensive branches', () => {
   it('falls back to an empty groups object when URLPattern.exec cannot produce a match', () => {
@@ -18,7 +19,7 @@ describe('Router internal defensive branches', () => {
     Reflect.defineMetadata(MetadataPropertyEnum.METHOD_HTTP_OPERATION, HttpMethodEnum.GET, RawController.prototype, 'handle');
 
     const router = new Router();
-    router.build([new RawController()]);
+    router.build([new RawController() as unknown as ControllerInstanceType]);
 
     const originalExec = URLPattern.prototype.exec;
     URLPattern.prototype.exec = function () {
@@ -47,7 +48,7 @@ describe('Router internal defensive branches', () => {
 
     const router = new Router();
     const instance = new RawController();
-    router.build([instance]);
+    router.build([instance as unknown as ControllerInstanceType]);
 
     const result = router.match('/raw-no-types', 'GET');
     assert.notEqual(result, false);

@@ -7,6 +7,7 @@ import { hasRequestBody } from "../util/has-request-body.util.js";
 import { parseJsonBody } from "../util/parse-body-json.util.js";
 import type { PipeTransformInterface } from "../interface/pipe-transform.interface.js";
 import type { ConstructorType } from "../type/constructor.type.js";
+import type { ParamMetadataInterface } from "../interface/param-metadata.interface.js";
 import { PipelineStage } from "./pipeline-stage.js";
 
 export class ApplicationHandler extends PipelineStage<PipeTransformInterface> {
@@ -28,7 +29,7 @@ export class ApplicationHandler extends PipelineStage<PipeTransformInterface> {
     return () => route.method.apply(route.instance, args)
   }
 
-  private async validateArgument(initialMetadataType: ConstructorType, value: any, route: RouteMethodHandlerInterface) {
+  private async validateArgument(initialMetadataType: ConstructorType, value: unknown, route: RouteMethodHandlerInterface) {
     const pipes = this.getEntities(route);
 
     let validatedValue = value;
@@ -39,8 +40,8 @@ export class ApplicationHandler extends PipelineStage<PipeTransformInterface> {
     return validatedValue
   }
 
-  private async prepareArg({ params, queries, instance, method }: RouteMethodHandlerInterface, arg: any, index: number, req: IncomingMessage) {
-    const paramMap = Reflect.getMetadata(MetadataPropertyEnum.METHOD_PARAM, Object.getPrototypeOf(instance), method.name) ?? {}
+  private async prepareArg({ params, queries, instance, method }: RouteMethodHandlerInterface, arg: ConstructorType, index: number, req: IncomingMessage) {
+    const paramMap: Record<number, ParamMetadataInterface> = Reflect.getMetadata(MetadataPropertyEnum.METHOD_PARAM, Object.getPrototypeOf(instance), method.name) ?? {}
     const { type, name } = (paramMap[index] ?? {})
 
     if (type === HttpHandlerParamTypeEnum.PARAM) {

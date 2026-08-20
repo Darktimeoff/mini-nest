@@ -1,6 +1,6 @@
 import { MetadataPropertyEnum } from "../enum/metadata-property.enum.js";
 import { PipelineStage } from "./pipeline-stage.js";
-import type { InterceptorInterface } from "../interface/interceptor.interface.js";
+import type { InterceptorInterface, InterceptorPostHandlerType } from "../interface/interceptor.interface.js";
 import type { RouteMethodHandlerInterface } from "../interface/route-method-handler.interface.js";
 import type { ExecutionContextInterface } from "../interface/execution-context.interface.js";
 
@@ -9,10 +9,10 @@ export class ApplicationInterceptor extends PipelineStage<InterceptorInterface> 
     super(MetadataPropertyEnum.INTERCEPTORS)
   }
 
-  async apply(routeMethodHandler: RouteMethodHandlerInterface, context: ExecutionContextInterface, handler: () => Promise<any>) {
+  async apply(routeMethodHandler: RouteMethodHandlerInterface, context: ExecutionContextInterface, handler: () => Promise<unknown>) {
     const interceptors = this.getEntities(routeMethodHandler)
 
-    const queues: ((response: any) => any | Promise<any>)[] = []
+    const queues: InterceptorPostHandlerType[] = []
 
     for (const interceptor of interceptors) {
       queues.push(await interceptor.intercept(context))

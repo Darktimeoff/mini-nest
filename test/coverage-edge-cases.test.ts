@@ -2,7 +2,7 @@ import 'reflect-metadata';
 import { describe, it, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import type { Server } from 'node:http';
-import { Factory, Controller, Get, Post, Param, Query, Body, NotFoundException, UsePipes } from '../src/index.js';
+import { Factory, Controller, Get, Post, Param, Query, Body, NotFoundException, UsePipes, UseFilters, type ExceptionFilterInterface } from '../src/index.js';
 import type { PipeTransformInterface } from '../src/interface/pipe-transform.interface.js';
 
 class UppercasePipe implements PipeTransformInterface {
@@ -17,6 +17,21 @@ class ClassLevelPipeController {
   @Get(':id')
   async getById(@Param('id') id: string) {
     return { id };
+  }
+}
+
+class UndecoratedFilter implements ExceptionFilterInterface {
+  catch() {
+    // never called: no @Catch() means this filter never matches any error
+  }
+}
+
+@Controller('undecorated-filter')
+@UseFilters(new UndecoratedFilter())
+class UndecoratedFilterController {
+  @Get('boom')
+  async boom() {
+    throw new Error('boom');
   }
 }
 
@@ -54,7 +69,7 @@ describe('Edge cases required for full branch coverage', () => {
   let baseUrl: string;
 
   before(async () => {
-    server = Factory.create([EdgeController, ClassLevelPipeController]);
+    server = Factory.create([EdgeController, ClassLevelPipeController, UndecoratedFilterController]);
     await new Promise<void>((resolve) => server.listen(0, resolve));
     const address = server.address();
     port = typeof address === 'object' && address ? address.port : 0;
@@ -112,6 +127,11 @@ describe('Edge cases required for full branch coverage', () => {
     const res = await fetch(`${baseUrl}/class-pipe/abc`);
     const body = await res.json() as any;
     assert.equal(body.id, 'ABC');
+  });
+
+  it('a filter registered without @Catch() is skipped instead of crashing the pipeline', async () => {
+    const res = await fetch(`${baseUrl}/undecorated-filter/boom`);
+    assert.equal(res.status, 500);
   });
 
   it('returns 404 when the request object has no url/method', async () => {

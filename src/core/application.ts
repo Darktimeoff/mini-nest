@@ -11,6 +11,7 @@ import type { RouteMethodHandlerInterface } from "../interface/route-method-hand
 import type { ExecutionContextInterface } from "../interface/execution-context.interface.js";
 import { ExecutionContext } from "./execution-context.js";
 import { writeJson } from "../util/write-json.util.js";
+import type { ControllerInstanceType } from "../type/controller-instance.type.js";
 
 export class Application extends Server {
   private readonly router = new Router()
@@ -24,7 +25,7 @@ export class Application extends Server {
     super()
 
     const container = new Container()
-    const instances = controllers.map(c => container.resolve(c))
+    const instances = controllers.map(c => container.resolve(c) as ControllerInstanceType)
     this.router.build(instances)
 
     this.on('request', this.handleRequest.bind(this))

@@ -1,6 +1,6 @@
 export function CreateDecoratorFactory(key: string, value: unknown) {
   return (
-    target: Object | Function,
+    target: object,
     methodName?: string | symbol,
     _?: PropertyDescriptor
   ) => {

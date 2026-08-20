@@ -16,7 +16,7 @@ export class ApplicationFilter extends PipelineStage<ExceptionFilterInterface> {
     const filters = this.getEntities(routeMethodHandler)
 
     for (const filter of filters) {
-      const exceptions: ConstructorType[] = Reflect.getMetadata(MetadataPropertyEnum.EXCEPTIONS, filter.constructor)
+      const exceptions: ConstructorType[] = Reflect.getMetadata(MetadataPropertyEnum.EXCEPTIONS, filter.constructor) ?? []
 
       for (const exception of exceptions) {
         if (error instanceof exception) {
