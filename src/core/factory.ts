@@ -4,6 +4,9 @@ import { Container } from "./container.js";
 import { Router } from "./router.js";
 import { HandlerBuilder } from "./handler-builder.js";
 import { HttpException } from "../http-exception/http-exception.js";
+import { MetadataProperty } from "../enum/metadata-property.enum.js";
+import type { GuardCanActivateInterface } from "../interface/guard-can-activate.interface.js";
+import { ForbiddenException } from "../http-exception/forbidden-exception.js";
 
 export class Factory {
   static create(controllers: ConstructorType[]): Server<typeof IncomingMessage, typeof ServerResponse> {
@@ -23,7 +26,23 @@ export class Factory {
         return;
       }
 
+      const classGuards: GuardCanActivateInterface[] = Reflect.getMetadata(MetadataProperty.GUARDS, routeMethodHandler.instance.constructor) ?? []
+      const methodGuards: GuardCanActivateInterface[] = Reflect.getMetadata(MetadataProperty.GUARDS, Object.getPrototypeOf(routeMethodHandler.instance), routeMethodHandler.method.name) ?? []
+      const guards = [...classGuards, ...methodGuards];
+      
       try {
+        for (const guard of guards) {
+          const result = await guard.canActivate({
+            switchToHttp: () => ({
+              getRequest: () => req
+            })
+          })
+
+          if (!result) {
+            throw new ForbiddenException()
+          }
+        }
+        
         const handler = await handlerBuilder.build(routeMethodHandler, req)
         const result = await handler()
         res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
