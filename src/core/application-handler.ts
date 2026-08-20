@@ -1,5 +1,5 @@
 import type { IncomingMessage } from "node:http";
-import { HttpHandlerParamTypeEnum } from "../enum/http-handler-param-type.enum.js";
+import { ParamTypeEnum } from "../enum/param-type.enum.js";
 import { MetadataPropertyEnum } from "../enum/metadata-property.enum.js";
 import type { RouteMethodHandlerInterface } from "../interface/route-method-handler.interface.js";
 import type { ExecutionContextInterface } from "../interface/execution-context.interface.js";
@@ -44,15 +44,15 @@ export class ApplicationHandler extends PipelineStage<PipeTransformInterface> {
     const paramMap: Record<number, ParamMetadataInterface> = Reflect.getMetadata(MetadataPropertyEnum.METHOD_PARAM, Object.getPrototypeOf(instance), method.name) ?? {}
     const { type, name } = (paramMap[index] ?? {})
 
-    if (type === HttpHandlerParamTypeEnum.PARAM) {
+    if (type === ParamTypeEnum.PARAM) {
       return name ? params[name] : params
     }
 
-    if (type === HttpHandlerParamTypeEnum.QUERY) {
+    if (type === ParamTypeEnum.QUERY) {
       return name ? queries[name] : queries
     }
 
-    if (type === HttpHandlerParamTypeEnum.BODY) {
+    if (type === ParamTypeEnum.BODY) {
       return hasRequestBody(req) ? await parseJsonBody(req) : undefined
     }
 

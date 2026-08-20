@@ -1,4 +1,4 @@
-export function CreateDecoratorFactory(key: string, value: unknown) {
+export function CreatePipelineDecorator(key: string, value: unknown) {
   return (
     target: object,
     methodName?: string | symbol,

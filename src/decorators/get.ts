@@ -1,6 +1,6 @@
 import { HttpMethodEnum } from "../enum/http-method.enum.js"
-import { HTTPHandler } from "./http-handler.js"
+import { CreateRouteDecorator } from "./create-route-decorator.js"
 
 export function Get(path: string = '') {
-  return HTTPHandler(HttpMethodEnum.GET, path)
+  return CreateRouteDecorator(HttpMethodEnum.GET, path)
 }

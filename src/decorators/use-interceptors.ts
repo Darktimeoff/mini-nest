@@ -1,7 +1,7 @@
 import { MetadataPropertyEnum } from "../enum/metadata-property.enum.js";
 import type { InterceptorInterface } from "../interface/interceptor.interface.js";
-import { CreateDecoratorFactory } from "./create-decorator-factory.js";
+import { CreatePipelineDecorator } from "./create-pipeline-decorator.js";
 
 export function UseInterceptors(...interceptors: InterceptorInterface[]) {
-  return CreateDecoratorFactory(MetadataPropertyEnum.INTERCEPTORS, interceptors)
+  return CreatePipelineDecorator(MetadataPropertyEnum.INTERCEPTORS, interceptors)
 }
