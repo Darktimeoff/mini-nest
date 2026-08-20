@@ -4,6 +4,9 @@
   "description": "A hand-rolled IoC container inspired by the internals of a popular Node.js framework.",
   "type": "module",
   "main": "dist/index.js",
+  "engines": {
+    "node": ">=23.8"
+  },
   "scripts": {
     "build": "tsc",
     "start": "bun --watch test/guard.test.ts",

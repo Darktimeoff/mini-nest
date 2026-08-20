@@ -6,6 +6,7 @@ import type { RouteType } from "../type/route.type.js";
 import type { ConstructorType } from "../type/constructor.type.js";
 import type { RouteHandlerMethodType } from "../type/route-handler-method.type.js";
 import type { ControllerInstanceType } from "../type/controller-instance.type.js";
+import { joinRoutePath } from "../util/join-route-path.util.js";
 
 export class Router {
   private readonly routerHandlerMap: Record<string,  RouteType> = {}
@@ -17,21 +18,28 @@ export class Router {
     this.routes = Object.entries(this.routerHandlerMap)
   }
 
-  match(url: string, method: string): RouteMethodHandlerInterface | false  {
+  match(url: string, method: string): RouteMethodHandlerInterface | false | 'method-not-allowed' {
     const [pathname, query] = url.split('?') as [string, string | undefined]
+
+    let pathMatched = false
 
     for (const [path, httpMap] of this.routes) {
       const pattern = new URLPattern({ pathname: path });
-      if (pattern.test({pathname: pathname})) {
-        return method in httpMap && isHttpMethod(method) && httpMap[method] ? {
+
+      if (!pattern.test({ pathname })) continue
+
+      pathMatched = true
+
+      if (method in httpMap && isHttpMethod(method) && httpMap[method]) {
+        return {
           ...httpMap[method],
-          params: pattern.exec({ pathname: pathname })?.pathname.groups ?? {},
+          params: pattern.exec({ pathname })?.pathname.groups ?? {},
           queries: Object.fromEntries(new URLSearchParams(query).entries())
-        } : false
+        }
       }
     }
 
-    return false
+    return pathMatched ? 'method-not-allowed' : false
   }
 
   private add(controller: ControllerInstanceType) {
@@ -42,7 +50,7 @@ export class Router {
       const path: string = Reflect.getMetadata(MetadataPropertyEnum.METHOD_PATH, Object.getPrototypeOf(controller), methodName);
       const httpMethod: HttpMethodEnum = Reflect.getMetadata(MetadataPropertyEnum.METHOD_HTTP_OPERATION, Object.getPrototypeOf(controller), methodName);
       const paramTypes: ConstructorType[] = Reflect.getMetadata("design:paramtypes", Object.getPrototypeOf(controller), methodName) || []
-      const normalizedPath = `/${controllerPath.replaceAll('/', '')}${path.length > 0 ? '/' : ''}${path.replaceAll('/', '')}`
+      const normalizedPath = joinRoutePath(controllerPath, path)
 
 
       this.routerHandlerMap[normalizedPath] = {

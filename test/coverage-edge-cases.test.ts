@@ -35,6 +35,14 @@ class UndecoratedFilterController {
   }
 }
 
+@Controller('nested')
+class NestedPathController {
+  @Get('deep/path')
+  async deepPath() {
+    return { ok: true };
+  }
+}
+
 @Controller('edge')
 class EdgeController {
   @Get('search')
@@ -48,8 +56,8 @@ class EdgeController {
   }
 
   @Post()
-  async create() {
-    return { ok: true };
+  async create(@Body() body: unknown) {
+    return { ok: true, body };
   }
 
   @Get('missing')
@@ -69,7 +77,7 @@ describe('Edge cases required for full branch coverage', () => {
   let baseUrl: string;
 
   before(async () => {
-    server = Factory.create([EdgeController, ClassLevelPipeController, UndecoratedFilterController]);
+    server = Factory.create([EdgeController, ClassLevelPipeController, UndecoratedFilterController, NestedPathController]);
     await new Promise<void>((resolve) => server.listen(0, resolve));
     const address = server.address();
     port = typeof address === 'object' && address ? address.port : 0;
@@ -106,9 +114,29 @@ describe('Edge cases required for full branch coverage', () => {
     assert.equal(body.message, 'Edge resource not found');
   });
 
-  it('returns 404 when the path matches but the HTTP method is not registered', async () => {
+  it('joins a multi-segment @Get() path with its controller prefix instead of collapsing slashes', async () => {
+    const res = await fetch(`${baseUrl}/nested/deep/path`);
+    assert.equal(res.status, 200);
+
+    const collapsed = await fetch(`${baseUrl}/nested/deeppath`);
+    assert.equal(collapsed.status, 404);
+  });
+
+  it('malformed JSON body maps to 400, not 500', async () => {
+    const res = await fetch(`${baseUrl}/edge`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: '{ invalid json',
+    });
+
+    assert.equal(res.status, 400);
+    const body = await res.json() as any;
+    assert.match(body.message, /invalid json/i);
+  });
+
+  it('returns 405 when the path matches but the HTTP method is not registered', async () => {
     const res = await fetch(`${baseUrl}/edge/7`, { method: 'DELETE' });
-    assert.equal(res.status, 404);
+    assert.equal(res.status, 405);
   });
 
   it('returns 404 when there are no routes at all', async () => {

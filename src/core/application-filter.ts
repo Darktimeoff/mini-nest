@@ -40,6 +40,13 @@ export class ApplicationFilter extends PipelineStage<ExceptionFilterInterface> {
     res.end('404 Not Found');
   }
 
+  applyMethodNotAllowed(context: ExecutionContextInterface) {
+    const res = context.switchToHttp().getResponse()
+
+    res.writeHead(405, { 'Content-Type': 'text/plain; charset=utf-8' });
+    res.end('405 Method Not Allowed');
+  }
+
   applyDefault(context: ExecutionContextInterface, error: unknown) {
     const res = context.switchToHttp().getResponse()
 

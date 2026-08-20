@@ -1,4 +1,5 @@
 import type { IncomingMessage } from "node:http";
+import { BadRequestException } from "../http-exception/bad-request-exception.js";
 
 type RequestWithCachedBody = IncomingMessage & { body?: unknown }
 
@@ -27,7 +28,7 @@ export async function parseJsonBody(req: IncomingMessage): Promise<unknown> {
         const parsed = JSON.parse(rawString);
         resolve(parsed);
       } catch (error) {
-        reject(new Error('Invalid JSON payload'));
+        reject(new BadRequestException('Invalid JSON payload'));
       }
     });
 

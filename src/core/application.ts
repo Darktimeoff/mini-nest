@@ -61,6 +61,11 @@ export class Application extends Server {
 
     const routeMethodHandler = req.url && req.method ? this.router.match(req.url, req.method) : false
 
+    if (routeMethodHandler === 'method-not-allowed') {
+      this.filterStage.applyMethodNotAllowed(context)
+      return;
+    }
+
     if (routeMethodHandler === false) {
       this.filterStage.applyNotFound(context)
       return;
