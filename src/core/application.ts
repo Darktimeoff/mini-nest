@@ -9,6 +9,8 @@ import { ApplicationInterceptor } from "./application-interceptor.js";
 import { ApplicationFilter } from "./application-filter.js";
 import type { RouteMethodHandlerInterface } from "../interface/route-method-handler.interface.js";
 import type { ExecutionContextInterface } from "../interface/execution-context.interface.js";
+import { ExecutionContext } from "./execution-context.js";
+import { writeJson } from "../util/write-json.util.js";
 
 export class Application extends Server {
   private readonly router = new Router()
@@ -29,12 +31,7 @@ export class Application extends Server {
   }
 
   private async handleRequest(req: IncomingMessage, res: ServerResponse) {
-    const context: ExecutionContextInterface = {
-      switchToHttp: () => ({
-        getRequest: () => req,
-        getResponse: () => res
-      })
-    }
+    const context: ExecutionContextInterface = new ExecutionContext(req, res)
 
     const routeMethodHandler = req.url && req.method ? this.router.match(req.url, req.method) : false
 
@@ -59,15 +56,13 @@ export class Application extends Server {
   private async runPipeline(routeMethodHandler: RouteMethodHandlerInterface, context: ExecutionContextInterface) {
     await this.guardStage.apply(routeMethodHandler, context)
 
-    const execturHandler = async () => {
+    const executeHandler = async () => {
       const handler = await this.handlerStage.apply(routeMethodHandler, context)
       return await handler()
     }
 
-    const result = await this.interceptorStage.apply(routeMethodHandler, context, execturHandler)
+    const result = await this.interceptorStage.apply(routeMethodHandler, context, executeHandler)
 
-    const res = context.switchToHttp().getResponse()
-    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-    res.end(JSON.stringify(result));
+    writeJson(context.switchToHttp().getResponse(), 200, result)
   }
 }

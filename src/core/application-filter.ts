@@ -5,6 +5,7 @@ import type { RouteMethodHandlerInterface } from "../interface/route-method-hand
 import type { ExecutionContextInterface } from "../interface/execution-context.interface.js";
 import type { ConstructorType } from "../type/constructor.type.js";
 import { HttpException } from "../http-exception/http-exception.js";
+import { writeJson } from "../util/write-json.util.js";
 
 export class ApplicationFilter extends PipelineStage<ExceptionFilterInterface> {
   constructor() {
@@ -43,15 +44,10 @@ export class ApplicationFilter extends PipelineStage<ExceptionFilterInterface> {
     const res = context.switchToHttp().getResponse()
 
     if (error instanceof HttpException) {
-      res.writeHead(error.statusCode, { 'Content-Type': 'application/json; charset=utf-8' });
-      res.end(JSON.stringify({
-        message: error.message,
-        details: error.details
-      }));
+      writeJson(res, error.statusCode, { message: error.message, details: error.details })
       return;
     }
 
-    res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
-    res.end(JSON.stringify({ message: 'Internal Server Error' }));
+    writeJson(res, 500, { message: 'Internal Server Error' })
   }
 }

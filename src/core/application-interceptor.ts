@@ -9,7 +9,7 @@ export class ApplicationInterceptor extends PipelineStage<InterceptorInterface> 
     super(MetadataPropertyEnum.INTERCEPTORS)
   }
 
-  async apply(routeMethodHandler: RouteMethodHandlerInterface, context: ExecutionContextInterface, handler: Function) {
+  async apply(routeMethodHandler: RouteMethodHandlerInterface, context: ExecutionContextInterface, handler: () => Promise<any>) {
     const interceptors = this.getEntities(routeMethodHandler)
 
     const queues: ((response: any) => any | Promise<any>)[] = []
