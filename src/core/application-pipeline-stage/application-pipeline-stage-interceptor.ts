@@ -1,10 +1,10 @@
-import { MetadataPropertyEnum } from "../enum/metadata-property.enum.js";
-import { PipelineStage } from "./pipeline-stage.js";
-import type { InterceptorInterface, InterceptorPostHandlerType } from "../interface/interceptor.interface.js";
-import type { RouteMethodHandlerInterface } from "../interface/route-method-handler.interface.js";
-import type { ExecutionContextInterface } from "../interface/execution-context.interface.js";
+import { MetadataPropertyEnum } from "../../enum/metadata-property.enum.js";
+import { ApplicationPipelineStage } from "./application-pipeline-stage.js";
+import type { InterceptorInterface, InterceptorPostHandlerType } from "../../interface/interceptor.interface.js";
+import type { RouteMethodHandlerInterface } from "../../interface/route-method-handler.interface.js";
+import type { ExecutionContextInterface } from "../../interface/execution-context.interface.js";
 
-export class ApplicationInterceptor extends PipelineStage<InterceptorInterface> {
+export class ApplicationPipelineStageInterceptor extends ApplicationPipelineStage<InterceptorInterface> {
   constructor() {
     super(MetadataPropertyEnum.INTERCEPTORS)
   }

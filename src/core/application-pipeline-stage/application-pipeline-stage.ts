@@ -1,7 +1,7 @@
-import type { MetadataPropertyEnum } from "../enum/metadata-property.enum.js";
-import type { RouteMethodHandlerInterface } from "../interface/route-method-handler.interface.js";
+import type { MetadataPropertyEnum } from "../../enum/metadata-property.enum.js";
+import type { RouteMethodHandlerInterface } from "../../interface/route-method-handler.interface.js";
 
-export abstract class PipelineStage<T> {
+export abstract class ApplicationPipelineStage<T> {
   private readonly globalEntities: T[] = []
 
   constructor(private readonly metadataKey: MetadataPropertyEnum) {}

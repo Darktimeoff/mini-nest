@@ -2,11 +2,11 @@ import { Server, type IncomingMessage, type ServerResponse } from "node:http";
 import type { ConstructorType } from "../type/constructor.type.js";
 import { Container } from "./container.js";
 import { Router } from "./router.js";
-import { ApplicationHandler } from "./application-handler.js";
-import { ApplicationMiddleware } from "./application-middleware.js";
-import { ApplicationGuard } from "./application-guard.js";
-import { ApplicationInterceptor } from "./application-interceptor.js";
-import { ApplicationFilter } from "./application-filter.js";
+import { ApplicationPipelineStageHandler } from "./application-pipeline-stage/application-pipeline-stage-handler.js";
+import { ApplicationPipelineStageMiddleware } from "./application-pipeline-stage/application-pipeline-stage-middleware.js";
+import { ApplicationPipelineStageGuard } from "./application-pipeline-stage/application-pipeline-stage-guard.js";
+import { ApplicationPipelineStageInterceptor } from "./application-pipeline-stage/application-pipeline-stage-interceptor.js";
+import { ApplicationPipelineStageFilter } from "./application-pipeline-stage/application-pipeline-stage-filter.js";
 import type { RouteMethodHandlerInterface } from "../interface/route-method-handler.interface.js";
 import type { ExecutionContextInterface } from "../interface/execution-context.interface.js";
 import { ExecutionContext } from "./execution-context.js";
@@ -20,11 +20,11 @@ import type { MiddlewareInterface } from "../interface/middleware.interface.js";
 
 export class Application extends Server {
   private readonly router = new Router()
-  private readonly handlerStage = new ApplicationHandler()
-  private readonly middlewareStage = new ApplicationMiddleware()
-  private readonly guardStage = new ApplicationGuard()
-  private readonly interceptorStage = new ApplicationInterceptor()
-  private readonly filterStage = new ApplicationFilter()
+  private readonly handlerStage = new ApplicationPipelineStageHandler()
+  private readonly middlewareStage = new ApplicationPipelineStageMiddleware()
+  private readonly guardStage = new ApplicationPipelineStageGuard()
+  private readonly interceptorStage = new ApplicationPipelineStageInterceptor()
+  private readonly filterStage = new ApplicationPipelineStageFilter()
 
   constructor(controllers: ConstructorType[]) {
     super()

@@ -1,16 +1,16 @@
 import type { IncomingMessage } from "node:http";
-import { ParamTypeEnum } from "../enum/param-type.enum.js";
-import { MetadataPropertyEnum } from "../enum/metadata-property.enum.js";
-import type { RouteMethodHandlerInterface } from "../interface/route-method-handler.interface.js";
-import type { ExecutionContextInterface } from "../interface/execution-context.interface.js";
-import { hasRequestBody } from "../util/has-request-body.util.js";
-import { parseJsonBody } from "../util/parse-body-json.util.js";
-import type { PipeTransformInterface } from "../interface/pipe-transform.interface.js";
-import type { ConstructorType } from "../type/constructor.type.js";
-import type { ParamMetadataInterface } from "../interface/param-metadata.interface.js";
-import { PipelineStage } from "./pipeline-stage.js";
+import { ParamTypeEnum } from "../../enum/param-type.enum.js";
+import { MetadataPropertyEnum } from "../../enum/metadata-property.enum.js";
+import type { RouteMethodHandlerInterface } from "../../interface/route-method-handler.interface.js";
+import type { ExecutionContextInterface } from "../../interface/execution-context.interface.js";
+import { hasRequestBody } from "../../util/has-request-body.util.js";
+import { parseJsonBody } from "../../util/parse-body-json.util.js";
+import type { PipeTransformInterface } from "../../interface/pipe-transform.interface.js";
+import type { ConstructorType } from "../../type/constructor.type.js";
+import type { ParamMetadataInterface } from "../../interface/param-metadata.interface.js";
+import { ApplicationPipelineStage } from "./application-pipeline-stage.js";
 
-export class ApplicationHandler extends PipelineStage<PipeTransformInterface> {
+export class ApplicationPipelineStageHandler extends ApplicationPipelineStage<PipeTransformInterface> {
   constructor() {
     super(MetadataPropertyEnum.PIPES)
   }

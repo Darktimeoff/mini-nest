@@ -1,13 +1,13 @@
-import { MetadataPropertyEnum } from "../enum/metadata-property.enum.js";
-import { PipelineStage } from "./pipeline-stage.js";
-import type { ExceptionFilterInterface } from "../interface/exception-filter.interface.js";
-import type { RouteMethodHandlerInterface } from "../interface/route-method-handler.interface.js";
-import type { ExecutionContextInterface } from "../interface/execution-context.interface.js";
-import type { ConstructorType } from "../type/constructor.type.js";
-import { HttpException } from "../http-exception/http-exception.js";
-import { writeJson } from "../util/write-json.util.js";
+import { MetadataPropertyEnum } from "../../enum/metadata-property.enum.js";
+import { ApplicationPipelineStage } from "./application-pipeline-stage.js";
+import type { ExceptionFilterInterface } from "../../interface/exception-filter.interface.js";
+import type { RouteMethodHandlerInterface } from "../../interface/route-method-handler.interface.js";
+import type { ExecutionContextInterface } from "../../interface/execution-context.interface.js";
+import type { ConstructorType } from "../../type/constructor.type.js";
+import { HttpException } from "../../http-exception/http-exception.js";
+import { writeJson } from "../../util/write-json.util.js";
 
-export class ApplicationFilter extends PipelineStage<ExceptionFilterInterface> {
+export class ApplicationPipelineStageFilter extends ApplicationPipelineStage<ExceptionFilterInterface> {
   constructor() {
     super(MetadataPropertyEnum.FILTERS)
   }
