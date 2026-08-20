@@ -15,6 +15,7 @@
     "verbatimModuleSyntax": true,
     "isolatedModules": true,
     "noUncheckedSideEffectImports": true,
+    "strictPropertyInitialization": false,
     "moduleDetection": "force",
     "skipLibCheck": true,
     "rootDir": "./src",

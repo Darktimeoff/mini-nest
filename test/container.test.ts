@@ -110,4 +110,21 @@ describe('Container', () => {
 
     assert.throws(() => new Container().resolve(NotInjectable), /not marked like injectable/i);
   });
+
+  it('resolves dependency with mixed token and type-based resolution', () => {
+    @Injectable()
+    class ServiceWithBoth {
+      constructor(
+        @Inject(LOGGER) public readonly logger: LoggerInterface,
+        public readonly c: ServiceC
+      ) {}
+    }
+
+    const container = new Container();
+    container.bind(LOGGER, ConsoleLogger);
+
+    const instance = container.resolve(ServiceWithBoth);
+    assert.ok(instance.logger instanceof ConsoleLogger);
+    assert.ok(instance.c instanceof ServiceC);
+  });
 });
