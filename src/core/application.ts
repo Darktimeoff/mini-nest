@@ -12,6 +12,11 @@ import type { ExecutionContextInterface } from "../interface/execution-context.i
 import { ExecutionContext } from "./execution-context.js";
 import { writeJson } from "../util/write-json.util.js";
 import type { ControllerInstanceType } from "../type/controller-instance.type.js";
+import type { GuardCanActivateInterface } from "../interface/guard-can-activate.interface.js";
+import type { InterceptorInterface } from "../interface/interceptor.interface.js";
+import type { PipeTransformInterface } from "../interface/pipe-transform.interface.js";
+import type { ExceptionFilterInterface } from "../interface/exception-filter.interface.js";
+import type { MiddlewareInterface } from "../interface/middleware.interface.js";
 
 export class Application extends Server {
   private readonly router = new Router()
@@ -29,6 +34,26 @@ export class Application extends Server {
     this.router.build(instances)
 
     this.on('request', this.handleRequest.bind(this))
+  }
+
+  useGlobalGuards(...guards: GuardCanActivateInterface[]) {
+    this.guardStage.useGlobal(...guards)
+  }
+
+  useGlobalInterceptors(...interceptors: InterceptorInterface[]) {
+    this.interceptorStage.useGlobal(...interceptors)
+  }
+
+  useGlobalPipes(...pipes: PipeTransformInterface[]) {
+    this.handlerStage.useGlobal(...pipes)
+  }
+
+  useGlobalFilters(...filters: ExceptionFilterInterface[]) {
+    this.filterStage.useGlobal(...filters)
+  }
+
+  useGlobalMiddlewares(...middlewares: MiddlewareInterface[]) {
+    this.middlewareStage.useGlobal(...middlewares)
   }
 
   private async handleRequest(req: IncomingMessage, res: ServerResponse) {
