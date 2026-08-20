@@ -87,8 +87,51 @@ getById(@Param('id') id: string) { ... }
 class RequestLogger {}
 ```
 
+## Частина 3: повний життєвий цикл запиту
+
+Кожен HTTP-запит проходить один і той самий конвеєр, незалежно від контролера:
+
+```
+              ┌──────────────────────────────────────────────────────────┐
+              │                     Factory.create()                     │
+Request  ───▶ │  Middleware ──▶ Guard ──▶ Interceptor(before) ──▶ Pipe    │
+              │                                                    │      │
+              │                                                    ▼      │
+              │                                                Handler    │
+              │                                                    │      │
+              │                                                    ▼      │
+              │                                          Interceptor(after)│
+              └──────────────────────────────────────────────────────────┘
+                          │ throw на будь-якому етапі
+                          ▼
+                  Exception Filter ──▶ HTTP-відповідь (404 / 400 / 500 / ...)
+```
+
+- **Middleware** (`src/interface/middleware.interface.ts`, `src/decorators/use-middlewares.ts`) — єдина стадія цього циклу, яку постачає сам фреймворк, за аналогією з `NestMiddleware`/`app.use()` в реальному Nest. Це `use(context, next)` з явним `next()`, тому middleware може обгорнути **весь** інший конвеєр (наприклад, відкрити `AsyncLocalStorage.run()` навколо guard → interceptor → pipe → handler), а не просто виконатись і піти. `Factory.applyMiddlewares` (`src/core/factory.ts`) будує ланцюжок через `reduceRight`, той самий прийом, яким Express/Koa/Nest компонують middleware-стек.
+- **Guard** повертає `boolean` до виклику pipe і handler — якщо `false`, кидається `ForbiddenException` (403), і обробник не викликається.
+- **Interceptor** обгортає виклик: код до `next()` бачить вхід, код після — бачить (і може змінити) результат.
+- **Pipe** трансформує/валідує кожен аргумент безпосередньо перед передачею в handler.
+- **Exception Filter** — єдина точка, де помилка з будь-якого етапу (guard, interceptor, pipe, handler) перетворюється на HTTP-відповідь.
+
+### Що з цього — фреймворк, а що — код застосунку
+
+На відміну від частини 2 (де `ValidationPipe` — це вбудований у Nest примітив, а отже лежить у `src/pipe/`), у реальному NestJS `AuthGuard`, `LoggingInterceptor`, кастомний `ExceptionFilter` і ALS-обгортка над `requestId` **завжди пишуться самим розробником застосунку** — Nest не постачає їх "з коробки". Тому в цьому репозиторії:
+
+| Шар | Розташування | Чому |
+|---|---|---|
+| `MiddlewareInterface`, `UseMiddlewares`, ланцюжок у `Factory` | `src/` | Це нова стадія самого життєвого циклу — фреймворк має знати, як її викликати, так само як він уже знає про guards/interceptors/pipes/filters |
+| `ZodValidationPipe`, `AuthGuard`, `LoggingInterceptor`, `ExceptionFilter`, `RequestContext` (ALS-обгортка), `NotFoundError`/`ValidationError`, демо-сервіс | `test/fixtures/` | Конкретні реалізації під конкретний застосунок — так само, як у реальному Nest-проєкті вони лежать у `src/app/...` користувача, а не в `@nestjs/common` |
+
+`test/lifecycle-order.test.ts` збирає мітки кожного етапу в масив і звіряє з точним порядком `['middleware', 'guard', 'interceptor:before', 'pipe', 'handler', 'interceptor:after']`.
+
+### Чому AsyncLocalStorage, а не глобальна змінна
+
+Якби `requestId` зберігався у звичайній змінній модуля (`let currentRequestId`), два конкурентних запити зламали б одне одного: перший запит записує свій id, віддає керування на `await` (наприклад, читання тіла запиту чи звернення до "бази"), і поки він чекає, event loop встигає почати обробку другого запиту, який перезаписує ту саму змінну своїм id. Коли перший запит прокидається після `await` і логує "свій" requestId — там уже чужий. Це не гіпотетичний випадок: `test/request-context.test.ts` явно шле 10 паралельних запитів з різними `X-Request-Id` і перевіряє, що жоден не переплутався з чужим.
+
+`AsyncLocalStorage` вирішує це інакше: `als.run(store, callback)` прив'язує `store` не до модуля, а до **асинхронного контексту виконання** — Node відстежує цей контекст крізь усі `await`, `Promise.then`, таймери й колбеки, що були породжені всередині `callback`. Тобто кожен конкурентний запит живе у власній "бульбашці" контексту, і глибокий виклик (`UserService.getById` → `UserRepository.findById`, два рівні під обробником) читає саме `requestId` **свого** запиту через `storage.getStore()`, не отримуючи його як параметр і не ризикуючи побачити чужий. Ключова умова — `RequestContextMiddleware.use()` мусить обгорнути `als.run()` навколо **всього** іншого ланцюжка (guard → interceptor → pipe → handler), інакше код, що виконається поза цим `run()`, просто не побачить сховище.
+
 ## Статус
 
 - ✅ Частина 1: IoC-контейнер з резолвингом залежностей за типами й токенами
-- ✅ Частина 2: HTTP-диспетчер, контролери, DTO й валідація (цей файл)
-- ⏳ Частина 3: guards, interceptors, error filters
+- ✅ Частина 2: HTTP-диспетчер, контролери, DTO й валідація
+- ✅ Частина 3: middleware, guards, interceptors, pipes, exception filters, AsyncLocalStorage + request-id (цей файл)

@@ -6,6 +6,7 @@ export enum MetadataProperty {
   METHOD_HTTP_OPERATION = 'methodOperation',
   METHOD_PARAM = 'methodParam',
   PIPES = 'pipes',
+  MIDDLEWARES = 'middlewares',
   GUARDS = 'guards',
   INTERCEPTORS = 'interceptors',
   FILTERS = 'filters',

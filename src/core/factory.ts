@@ -11,6 +11,7 @@ import type { RouteMethodHandlerInterface } from "../interface/route-method-hand
 import type { InterceptorInterface } from "../interface/interceptor.interface.js";
 import type { ExecutionContextInterface } from "../interface/execution-context.interface.js";
 import type { ExceptionFilterInterface } from "../interface/exception-filter.interface.js";
+import type { MiddlewareInterface, NextFunction } from "../interface/middleware.interface.js";
 
 export class Factory {
   static create(controllers: ConstructorType[]): Server<typeof IncomingMessage, typeof ServerResponse> {
@@ -38,17 +39,21 @@ export class Factory {
       }
       
       try {
-        await Factory.applyGuards(routeMethodHandler, context)
-        
-        const execturHandler = async () => {
-          const handler = await handlerBuilder.build(routeMethodHandler, req)
-          return await handler()
+        const runPipeline = async () => {
+          await Factory.applyGuards(routeMethodHandler, context)
+
+          const execturHandler = async () => {
+            const handler = await handlerBuilder.build(routeMethodHandler, req)
+            return await handler()
+          }
+
+          const result = await Factory.applyInterceptors(routeMethodHandler, context, execturHandler)
+
+          res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+          res.end(JSON.stringify(result));
         }
 
-        const result = await Factory.applyInterceptors(routeMethodHandler, context, execturHandler)
-        
-        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-        res.end(JSON.stringify(result));
+        await Factory.applyMiddlewares(routeMethodHandler, context, runPipeline)
       } catch (err) {
         const isApplied = this.applyFilters(routeMethodHandler, context, err)
         
@@ -87,6 +92,19 @@ export class Factory {
     }
 
     return false
+  }
+
+  static async applyMiddlewares(routeMethodHandler: RouteMethodHandlerInterface, context: ExecutionContextInterface, tail: NextFunction) {
+    const classMiddlewares: MiddlewareInterface[] = Reflect.getMetadata(MetadataProperty.MIDDLEWARES, routeMethodHandler.instance.constructor) ?? []
+    const methodMiddlewares: MiddlewareInterface[] = Reflect.getMetadata(MetadataProperty.MIDDLEWARES, Object.getPrototypeOf(routeMethodHandler.instance), routeMethodHandler.method.name) ?? []
+    const middlewares = [...classMiddlewares, ...methodMiddlewares];
+
+    const chain = middlewares.reduceRight<NextFunction>(
+      (next, middleware) => () => Promise.resolve(middleware.use(context, next)),
+      tail
+    )
+
+    await chain()
   }
 
   static async applyGuards(routeMethodHandler: RouteMethodHandlerInterface, context: ExecutionContextInterface) {
