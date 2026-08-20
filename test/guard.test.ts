@@ -1,4 +1,28 @@
-import { UseGuards, Controller, Factory, type GuardCanActivateInterface, type ExecutionContextInterface, Get, Param, Injectable } from "../src/index.js";
+import { UseGuards, Controller, Factory, type GuardCanActivateInterface, type ExecutionContextInterface, Get, Param, Injectable, type InterceptorInterface, UseInterceptors } from "../src/index.js";
+
+@Injectable()
+class LoggingInterceptor implements InterceptorInterface {
+  intercept(context: ExecutionContextInterface) {
+    const now = performance.now()
+  
+    return (data: any) => {
+      console.log(`After... ${performance.now() - now}ms`)
+
+      return data
+    }
+  }
+}
+
+@Injectable()
+class LoggingResponseInterceptor implements InterceptorInterface {
+  intercept(context: ExecutionContextInterface) {
+    return (data: any) => {
+      console.log('Logging response', data)
+
+      return {...data, test: 'intercepted'}
+    }
+  }
+}
 
 @Injectable()
 class AuthClassGuard implements GuardCanActivateInterface {
@@ -25,9 +49,11 @@ class AuthMethodGuard implements GuardCanActivateInterface {
 }
 
 
+@UseInterceptors(new LoggingInterceptor)
 @UseGuards(new AuthClassGuard)
 @Controller('user')
 export class UserController {
+  @UseInterceptors(new LoggingResponseInterceptor)
   @UseGuards(new AuthMethodGuard)
   @Get(':id')
   async findById(@Param('id') id: string) {

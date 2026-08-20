@@ -7,6 +7,9 @@ import { HttpException } from "../http-exception/http-exception.js";
 import { MetadataProperty } from "../enum/metadata-property.enum.js";
 import type { GuardCanActivateInterface } from "../interface/guard-can-activate.interface.js";
 import { ForbiddenException } from "../http-exception/forbidden-exception.js";
+import type { RouteMethodHandlerInterface } from "../interface/route-method-handler.interface.js";
+import type { InterceptorInterface } from "../interface/interceptor.interface.js";
+import type { ExecutionContextInterface } from "../interface/execution-context.interface.js";
 
 export class Factory {
   static create(controllers: ConstructorType[]): Server<typeof IncomingMessage, typeof ServerResponse> {
@@ -25,26 +28,17 @@ export class Factory {
         res.end('404 Not Found');
         return;
       }
-
-      const classGuards: GuardCanActivateInterface[] = Reflect.getMetadata(MetadataProperty.GUARDS, routeMethodHandler.instance.constructor) ?? []
-      const methodGuards: GuardCanActivateInterface[] = Reflect.getMetadata(MetadataProperty.GUARDS, Object.getPrototypeOf(routeMethodHandler.instance), routeMethodHandler.method.name) ?? []
-      const guards = [...classGuards, ...methodGuards];
       
       try {
-        for (const guard of guards) {
-          const result = await guard.canActivate({
-            switchToHttp: () => ({
-              getRequest: () => req
-            })
-          })
-
-          if (!result) {
-            throw new ForbiddenException()
-          }
-        }
+        Factory.applyGuards(routeMethodHandler, req)
         
-        const handler = await handlerBuilder.build(routeMethodHandler, req)
-        const result = await handler()
+        const execturHandler = async () => {
+          const handler = await handlerBuilder.build(routeMethodHandler, req)
+          return await handler()
+        }
+
+        const result = await Factory.applyInterceptors(routeMethodHandler, req, execturHandler)
+        
         res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
         res.end(JSON.stringify(result));
       } catch (err) {
@@ -60,5 +54,48 @@ export class Factory {
         }
       }
     })
+  }
+
+  static async applyGuards(routeMethodHandler: RouteMethodHandlerInterface, req: IncomingMessage) {
+    const classGuards: GuardCanActivateInterface[] = Reflect.getMetadata(MetadataProperty.GUARDS, routeMethodHandler.instance.constructor) ?? []
+    const methodGuards: GuardCanActivateInterface[] = Reflect.getMetadata(MetadataProperty.GUARDS, Object.getPrototypeOf(routeMethodHandler.instance), routeMethodHandler.method.name) ?? []
+    const guards = [...classGuards, ...methodGuards];
+
+    for (const guard of guards) {
+      const result = await guard.canActivate({
+        switchToHttp: () => ({
+          getRequest: () => req
+        })
+      })
+
+      if (!result) {
+        throw new ForbiddenException()
+      }
+    }
+  }
+
+  static async applyInterceptors(routeMethodHandler: RouteMethodHandlerInterface, req: IncomingMessage, handler: Function) {
+    const classs: InterceptorInterface[] = Reflect.getMetadata(MetadataProperty.INTERCEPTORS, routeMethodHandler.instance.constructor) ?? []
+    const methods: InterceptorInterface[] = Reflect.getMetadata(MetadataProperty.INTERCEPTORS, Object.getPrototypeOf(routeMethodHandler.instance), routeMethodHandler.method.name) ?? []
+    const interceptos = [...classs, ...methods];
+    const context: ExecutionContextInterface = {
+      switchToHttp: () => ({
+        getRequest: () => req
+      })
+    }
+
+    const queues: ((response: any) => any | Promise<any>)[] = []
+    
+    for (const interceptor of interceptos) {
+      queues.push(await interceptor.intercept(context))
+    }
+
+    let result = await handler() 
+
+    for (const postHandler of queues) {
+      result = await postHandler(result)
+    }
+    
+    return result
   }
 }
