@@ -1,4 +1,4 @@
-export enum MetadataProperty {
+export enum MetadataPropertyEnum {
   SCOPE = 'scope',
   TOKEN = 'token',
   CONTROLLER_PATH = 'controllerPath',

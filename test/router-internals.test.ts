@@ -2,7 +2,7 @@ import 'reflect-metadata';
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { Router } from '../src/core/router.js';
-import { MetadataProperty } from '../src/enum/metadata-property.enum.js';
+import { MetadataPropertyEnum } from '../src/enum/metadata-property.enum.js';
 import { HttpMethodEnum } from '../src/enum/http-method.enum.js';
 
 describe('Router internal defensive branches', () => {
@@ -13,9 +13,9 @@ describe('Router internal defensive branches', () => {
       }
     }
 
-    Reflect.defineMetadata(MetadataProperty.CONTROLLER_PATH, 'raw', RawController);
-    Reflect.defineMetadata(MetadataProperty.METHOD_PATH, '', RawController.prototype, 'handle');
-    Reflect.defineMetadata(MetadataProperty.METHOD_HTTP_OPERATION, HttpMethodEnum.GET, RawController.prototype, 'handle');
+    Reflect.defineMetadata(MetadataPropertyEnum.CONTROLLER_PATH, 'raw', RawController);
+    Reflect.defineMetadata(MetadataPropertyEnum.METHOD_PATH, '', RawController.prototype, 'handle');
+    Reflect.defineMetadata(MetadataPropertyEnum.METHOD_HTTP_OPERATION, HttpMethodEnum.GET, RawController.prototype, 'handle');
 
     const router = new Router();
     router.build([new RawController()]);
@@ -41,9 +41,9 @@ describe('Router internal defensive branches', () => {
       }
     }
 
-    Reflect.defineMetadata(MetadataProperty.CONTROLLER_PATH, 'raw-no-types', RawController);
-    Reflect.defineMetadata(MetadataProperty.METHOD_PATH, '', RawController.prototype, 'handle');
-    Reflect.defineMetadata(MetadataProperty.METHOD_HTTP_OPERATION, HttpMethodEnum.GET, RawController.prototype, 'handle');
+    Reflect.defineMetadata(MetadataPropertyEnum.CONTROLLER_PATH, 'raw-no-types', RawController);
+    Reflect.defineMetadata(MetadataPropertyEnum.METHOD_PATH, '', RawController.prototype, 'handle');
+    Reflect.defineMetadata(MetadataPropertyEnum.METHOD_HTTP_OPERATION, HttpMethodEnum.GET, RawController.prototype, 'handle');
 
     const router = new Router();
     const instance = new RawController();

@@ -1,5 +1,5 @@
 import type { HttpMethodEnum } from "../enum/http-method.enum.js";
-import { MetadataProperty } from "../enum/metadata-property.enum.js";
+import { MetadataPropertyEnum } from "../enum/metadata-property.enum.js";
 import type { RouteMethodHandlerInterface } from "../interface/route-method-handler.interface.js";
 import { isHttpMethod } from "../type-guard/is-http-method.type-guard.js";
 import type { RouteType } from "../type/route.type.js";
@@ -32,12 +32,12 @@ export class Router {
   }
 
   private add(controller: object) {
-    const controllerPath: string = Reflect.getMetadata(MetadataProperty.CONTROLLER_PATH, controller.constructor)
+    const controllerPath: string = Reflect.getMetadata(MetadataPropertyEnum.CONTROLLER_PATH, controller.constructor)
     const methods = this.getInstanceMethods(controller)
     
     for (const methodName of methods) {
-      const path: string = Reflect.getMetadata(MetadataProperty.METHOD_PATH, Object.getPrototypeOf(controller), methodName);
-      const httpMethod: HttpMethodEnum = Reflect.getMetadata(MetadataProperty.METHOD_HTTP_OPERATION, Object.getPrototypeOf(controller), methodName);
+      const path: string = Reflect.getMetadata(MetadataPropertyEnum.METHOD_PATH, Object.getPrototypeOf(controller), methodName);
+      const httpMethod: HttpMethodEnum = Reflect.getMetadata(MetadataPropertyEnum.METHOD_HTTP_OPERATION, Object.getPrototypeOf(controller), methodName);
       const normalizedPath = `/${controllerPath.replaceAll('/', '')}${path.length > 0 ? '/' : ''}${path.replaceAll('/', '')}`
 
       
@@ -59,7 +59,7 @@ export class Router {
   
     
     return Object.getOwnPropertyNames(prototype).filter(propertyName => {
-      const path = Reflect.getMetadata(MetadataProperty.METHOD_PATH, Object.getPrototypeOf(instance), propertyName);
+      const path = Reflect.getMetadata(MetadataPropertyEnum.METHOD_PATH, Object.getPrototypeOf(instance), propertyName);
       
       
       if (propertyName === "constructor" || typeof path !== 'string') return false;
