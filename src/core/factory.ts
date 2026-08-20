@@ -39,19 +39,7 @@ export class Factory {
       }
       
       try {
-        const runPipeline = async () => {
-          await Factory.applyGuards(routeMethodHandler, context)
-
-          const execturHandler = async () => {
-            const handler = await handlerBuilder.build(routeMethodHandler, req)
-            return await handler()
-          }
-
-          const result = await Factory.applyInterceptors(routeMethodHandler, context, execturHandler)
-
-          res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-          res.end(JSON.stringify(result));
-        }
+        const runPipeline = () => Factory.runPipeline(routeMethodHandler, context, handlerBuilder)
 
         await Factory.applyMiddlewares(routeMethodHandler, context, runPipeline)
       } catch (err) {
@@ -69,6 +57,21 @@ export class Factory {
         }
       }
     })
+  }
+
+  static async runPipeline(routeMethodHandler: RouteMethodHandlerInterface, context: ExecutionContextInterface, handlerBuilder: HandlerBuilder) {
+    await Factory.applyGuards(routeMethodHandler, context)
+
+    const execturHandler = async () => {
+      const handler = await handlerBuilder.build(routeMethodHandler, context.switchToHttp().getRequest())
+      return await handler()
+    }
+
+    const result = await Factory.applyInterceptors(routeMethodHandler, context, execturHandler)
+
+    const res = context.switchToHttp().getResponse()
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+    res.end(JSON.stringify(result));
   }
 
   static applyFilters(routeMethodHandler: RouteMethodHandlerInterface, context: ExecutionContextInterface, error: unknown) {

@@ -2,7 +2,23 @@ import 'reflect-metadata';
 import { describe, it, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import type { Server } from 'node:http';
-import { Factory, Controller, Get, Post, Param, Query, Body, NotFoundException } from '../src/index.js';
+import { Factory, Controller, Get, Post, Param, Query, Body, NotFoundException, UsePipes } from '../src/index.js';
+import type { PipeTransformInterface } from '../src/interface/pipe-transform.interface.js';
+
+class UppercasePipe implements PipeTransformInterface {
+  async transform(value: unknown) {
+    return typeof value === 'string' ? value.toUpperCase() : value;
+  }
+}
+
+@Controller('class-pipe')
+@UsePipes(new UppercasePipe())
+class ClassLevelPipeController {
+  @Get(':id')
+  async getById(@Param('id') id: string) {
+    return { id };
+  }
+}
 
 @Controller('edge')
 class EdgeController {
@@ -38,7 +54,7 @@ describe('Edge cases required for full branch coverage', () => {
   let baseUrl: string;
 
   before(async () => {
-    server = Factory.create([EdgeController]);
+    server = Factory.create([EdgeController, ClassLevelPipeController]);
     await new Promise<void>((resolve) => server.listen(0, resolve));
     const address = server.address();
     port = typeof address === 'object' && address ? address.port : 0;
@@ -90,6 +106,12 @@ describe('Edge cases required for full branch coverage', () => {
     assert.equal(res.status, 404);
 
     await new Promise<void>((resolve) => emptyServer.close(() => resolve()));
+  });
+
+  it('a class-level @UsePipes() runs for every route on that controller', async () => {
+    const res = await fetch(`${baseUrl}/class-pipe/abc`);
+    const body = await res.json() as any;
+    assert.equal(body.id, 'ABC');
   });
 
   it('returns 404 when the request object has no url/method', async () => {

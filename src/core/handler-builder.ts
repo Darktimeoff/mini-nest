@@ -21,7 +21,9 @@ export class HandlerBuilder {
   }
 
   private async validateArgument(initialMetadataType: ConstructorType, value: any, route: RouteMethodHandlerInterface) {
-    const pipes: PipeTransformInterface[] = Reflect.getMetadata(MetadataProperty.PIPES, Object.getPrototypeOf(route.instance), route.method.name) ?? [];
+    const classPipes: PipeTransformInterface[] = Reflect.getMetadata(MetadataProperty.PIPES, route.instance.constructor) ?? [];
+    const methodPipes: PipeTransformInterface[] = Reflect.getMetadata(MetadataProperty.PIPES, Object.getPrototypeOf(route.instance), route.method.name) ?? [];
+    const pipes = [...classPipes, ...methodPipes];
 
     let validatedValue = value;
     for (const pipe of pipes) {

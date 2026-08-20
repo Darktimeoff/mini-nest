@@ -49,7 +49,7 @@ class OrderController {
   @UseMiddlewares(new OrderMiddleware())
   @UseGuards(new OrderGuard())
   @UseInterceptors(new OrderInterceptor())
-  @UsePipes([new OrderPipe()])
+  @UsePipes(new OrderPipe())
   @Get(':id')
   async handle(@Param('id') id: string) {
     order.push('handler');

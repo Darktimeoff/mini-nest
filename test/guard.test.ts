@@ -33,7 +33,7 @@ const CreateUserSchema = z.object({
 
 @Controller('demo-users')
 class DemoUsersController {
-  @UsePipes([new ZodValidationPipe(CreateUserSchema)])
+  @UsePipes(new ZodValidationPipe(CreateUserSchema))
   @Post()
   async create(@Body() body: unknown) {
     return body;

@@ -38,7 +38,7 @@ export class UserController {
   }
 
   @Post()
-  @UsePipes([new ValidationPipe()])
+  @UsePipes(new ValidationPipe())
   async create(@Body() body: UserCreateDto) {
     return this.userService.create(body);
   }
