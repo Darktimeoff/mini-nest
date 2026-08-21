@@ -4,6 +4,8 @@ import assert from 'node:assert/strict';
 import { hasRequestBody } from '../src/util/has-request-body.util.js';
 import { parseJsonBody } from '../src/util/parse-body-json.util.js';
 import { createServer, IncomingMessage } from 'node:http';
+import { IsNotEmpty, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
 
 describe('Utilities', () => {
   describe('hasRequestBody', () => {
@@ -60,6 +62,11 @@ describe('Utilities', () => {
         headers: { 'content-length': '42' }
       } as any;
       assert.equal(hasRequestBody(req), true);
+    });
+
+    it('returns false when method is missing', () => {
+      const req = { headers: {} } as any;
+      assert.equal(hasRequestBody(req), false);
     });
 
     it('returns false for POST with no headers', () => {
@@ -213,6 +220,25 @@ describe('Utilities', () => {
       const pipe = new ValidationPipe();
       const result = await pipe.transform({ test: 'value' }, { metatype: undefined as any });
       assert.deepEqual(result, { test: 'value' });
+    });
+
+    it('reports a nested validation failure whose error has no own constraints', async () => {
+      class Address {
+        @IsNotEmpty()
+        city!: string;
+      }
+
+      class UserWithAddressDto {
+        @ValidateNested()
+        @Type(() => Address)
+        address!: Address;
+      }
+
+      const pipe = new ValidationPipe();
+
+      await assert.rejects(
+        () => pipe.transform({ address: { city: '' } }, { metatype: UserWithAddressDto }),
+      );
     });
   });
 });

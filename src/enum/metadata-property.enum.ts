@@ -1,9 +1,14 @@
-export enum MetadataProperty {
+export enum MetadataPropertyEnum {
   SCOPE = 'scope',
   TOKEN = 'token',
   CONTROLLER_PATH = 'controllerPath',
   METHOD_PATH = 'methodPath',
   METHOD_HTTP_OPERATION = 'methodOperation',
   METHOD_PARAM = 'methodParam',
-  PIPES = 'pipes'
+  PIPES = 'pipes',
+  MIDDLEWARES = 'middlewares',
+  GUARDS = 'guards',
+  INTERCEPTORS = 'interceptors',
+  FILTERS = 'filters',
+  EXCEPTIONS = 'exceptions'
 }

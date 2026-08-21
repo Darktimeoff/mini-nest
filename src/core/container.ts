@@ -1,5 +1,5 @@
 import { InjectableScope } from "../enum/injectable-scope.enum.js";
-import { MetadataProperty } from "../enum/metadata-property.enum.js";
+import { MetadataPropertyEnum } from "../enum/metadata-property.enum.js";
 import type { ConstructorType } from "../type/constructor.type.js";
 import type { InjectTokenType } from "../type/inject-token.type.js";
 
@@ -45,7 +45,7 @@ export class Container {
   }
 
   private resolveTokenDependencyOrFail(constructor: ConstructorType, index: number) {
-    const argTokenMap = Reflect.getMetadata(MetadataProperty.TOKEN, constructor) ?? {}
+    const argTokenMap = Reflect.getMetadata(MetadataPropertyEnum.TOKEN, constructor) ?? {}
     const token = argTokenMap[index] as (InjectTokenType | undefined)
 
     const binded = token ? this.tokenMap.get(token) : null
@@ -68,6 +68,6 @@ export class Container {
   }
 
   private getScope(constructor: ConstructorType) {
-    return Reflect.getOwnMetadata(MetadataProperty.SCOPE, constructor) as InjectableScope
+    return Reflect.getOwnMetadata(MetadataPropertyEnum.SCOPE, constructor) as InjectableScope
   }
 }

@@ -1,6 +1,6 @@
-import { HttpHandlerParamTypeEnum } from "../enum/http-handler-param-type.enum.js";
-import { HttpHandlerParam } from "./http-handler-param.js";
+import { ParamTypeEnum } from "../enum/param-type.enum.js";
+import { CreateParamDecorator } from "./create-param-decorator.js";
 
 export function Query(name?: string) {
-  return HttpHandlerParam(HttpHandlerParamTypeEnum.QUERY, name)
+  return CreateParamDecorator(ParamTypeEnum.QUERY, name)
 }

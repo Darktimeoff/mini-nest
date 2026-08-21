@@ -1,9 +1,14 @@
 import type { IncomingMessage } from "node:http";
+import { BadRequestException } from "../http-exception/bad-request-exception.js";
 
-export async function parseJsonBody(req: IncomingMessage): Promise<any> {
+type RequestWithCachedBody = IncomingMessage & { body?: unknown }
+
+export async function parseJsonBody(req: IncomingMessage): Promise<unknown> {
   return new Promise((resolve, reject) => {
-    if ((req as any).body) {
-      return resolve((req as any).body);
+    const cachedBody = (req as RequestWithCachedBody).body;
+
+    if (cachedBody) {
+      return resolve(cachedBody);
     }
 
     const chunks: Buffer[] = [];
@@ -15,15 +20,15 @@ export async function parseJsonBody(req: IncomingMessage): Promise<any> {
     req.on('end', () => {
       try {
         const rawString = Buffer.concat(chunks).toString('utf-8');
-        
+
         if (!rawString) {
           return resolve({});
         }
-        
+
         const parsed = JSON.parse(rawString);
         resolve(parsed);
       } catch (error) {
-        reject(new Error('Invalid JSON payload'));
+        reject(new BadRequestException('Invalid JSON payload'));
       }
     });
 
